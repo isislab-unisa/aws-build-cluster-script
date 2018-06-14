@@ -188,6 +188,10 @@ This command should show a json response with the state of all cluster instances
 
 ```
 
+## Testing
+
+This script was tested by building a cluster of size 8 using AMI StarCluster ami-52a0c53b (Linux Ubuntu) on t2.micro (using the commands shown for the MPI cluster example) and it should work with all Ubuntu-based AMIs.
+
 
 ## Author
 
