@@ -1,6 +1,7 @@
 #!/bin/bash
 
-TIME_POLLING=10
+TIME_POLLING=3  # abbreviato, checking via ssh!
+SSH_ATTEMPTS=30
 NAME_FILE_PEM=*.pem
 LOCAL_PEM_AMAZON=key/$NAME_FILE_PEM
 
@@ -44,7 +45,7 @@ fi
 
 
 ## clean environment
-rm data/*
+rm data/* > /dev/null
 
 
 echo ">>> Creating $DIM_CLUSTER instances..." 
@@ -67,10 +68,11 @@ do
 done
 
 
-echo ">>>>>> WAITING for the instances to become RUNNING"
+echo ">>> WAITING for the instances to become RUNNING"
 
-unready_machines=true
-while [[ $unready_machines = true ]]; do
+#unready_machines=0
+ready_machines=0
+while [[ $ready_machines != $DIM_CLUSTER ]]; do
 
 	aws ec2 describe-instance-status --instance-ids $id_inst_params \
 	--query "InstanceStatuses[*].InstanceState.Name" \
@@ -83,22 +85,17 @@ while [[ $unready_machines = true ]]; do
 		continue
 	fi
 
-	ready_machine=0
+	ready_machines=0
 	for status in "${status_instances[@]}"; do
 		if [[ status != "running" ]]; then
-			ready_machine=$((ready_machine+1))
+			ready_machines=$((ready_machines+1))
 		fi
 	done
-
-	if [[ $ready_machine = $DIM_CLUSTER ]]; then
-		unready_machines=false
-	fi
 
 	sleep $TIME_POLLING
 
 done
 
-sleep $TIME_POLLING
 
 echo "DONE, All Running!"
 
@@ -128,6 +125,15 @@ set | grep ^ip_private_list= > data/ip_private_list.array
 ## setting MASTER
 MASTER=${ip_list[0]}
 
+
+###########NEW!!!!
+echo ">>> Checking SSH connections on instances..."
+for pub_ip in "${ip_list[@]}"
+do
+	ssh -oStrictHostKeyChecking=no -oConnectionAttempts=$SSH_ATTEMPTS -i $LOCAL_PEM_AMAZON $USER_ACCESS@$pub_ip "exit;"
+	echo "$pub_ip is READY!"
+done
+echo "OK!"
 
 
 echo ">>> Configuring the MASTER::$MASTER ..."
@@ -170,7 +176,7 @@ echo ">>> Sending PEM on MASTER::$MASTER node ..."
 scp -i $LOCAL_PEM_AMAZON $LOCAL_PEM_AMAZON $USER_ACCESS@$MASTER:
 echo "DONE"
 
-echo ">>> Sending ip_private_list on MASTER::$MASTER node in $CUSER space... [for mpirun]"
+echo ">>> Sending ip_private_list on MASTER::$MASTER node in $CUSER space... [for future automation]"
 scp -i $LOCAL_PEM_AMAZON data/ip_private_list.array $USER_ACCESS@$MASTER:
 ssh -oStrictHostKeyChecking=no -i $LOCAL_PEM_AMAZON $USER_ACCESS@$MASTER "sudo cp ip_private_list.array /home/$CUSER/"
 echo "DONE"
@@ -209,7 +215,7 @@ echo ">>> The Cluster is READY!"
 echo "On each instance there is a user with :"
 echo "USERNAME:$CUSER - PASSWORD:$CPASS"
 
-echo -e "MASTER \tIP_PUBLIC = $MASTER"
+echo -e "MASTER\t IP_PUBLIC=$MASTER"
 for (( i=1; i<$DIM_CLUSTER; i++ ))
 do
 	curr_private_slave_ip=${ip_private_list[$i]}
