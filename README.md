@@ -84,7 +84,8 @@ To create the cluster you can run a wizard helps you asking all the information 
 For example, suppose you want to create a cluster MPI of 8 instance of type t2.micro and you want create a dedicated user *pcpc* with password *test*.
 
 Now supposing you found the *StarCluster Base Ubuntu* image with id "ami-52a0c53b".
-Another important information that is required is to insert the *user access*, that is the user who is enabled by ssh, which usually for AMI Linux of Amazon is "ubuntu".
+Another important information that is required is to insert the *user access*, that is the user who is enabled by ssh, which usually for AMI Ubuntu Linux of Amazon is "ubuntu".
+Usually the AMI should respect the username defined by the [Amazon guide](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html) but may vary according to the AMI provider (so in any case contact him)
 
 We therefore create a security group and a key-pair (or use an existing one): in this example the security group is "sg-acbb05e4" and the name of the key-pair is "kcluster"
 
@@ -190,7 +191,7 @@ This command should show a json response with the state of all cluster instances
 
 ## Testing
 
-This script was tested by building a cluster of size 8 using AMI StarCluster ami-52a0c53b (Linux Ubuntu) on t2.micro (using the commands shown for the MPI cluster example) and it should work with all Ubuntu-based AMIs.
+This script was tested by building a cluster of size 8 using AMI StarCluster ami-52a0c53b (Linux Ubuntu) on T2.Micro and M4.Large (using the commands shown for the MPI cluster example) and it should work with all Ubuntu-based AMIs.
 
 
 ## Author
