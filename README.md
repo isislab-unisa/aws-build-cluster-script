@@ -193,6 +193,12 @@ This command should show a json response with the state of all cluster instances
 
 This script was tested by building a cluster of size 8 using AMI StarCluster ami-52a0c53b (Linux Ubuntu) on T2.Micro and M4.Large (using the commands shown for the MPI cluster example) and it should work with all Ubuntu-based AMIs.
 
+The following table shows the other results of the tests performed on different OS:
+
+|      AMI     |                           AMI NAME                          | OS TYPE | INSTANCE TYPE | RESULT |
+|:------------:|:-----------------------------------------------------------:|:-------:|:-------------:|:------:|
+| ami-52a0c53b |           starcluster-base-ubuntu-12.04-x86_64-hvm          |  Ubuntu |    T2.Micro   |  WORK  |
+| ami-116d857a |         debian-jessie-amd64-hvm-2015-06-07-12-27-ebs        |  Debian |    T2.Micro   |  WORK  |
 
 ## Author
 
