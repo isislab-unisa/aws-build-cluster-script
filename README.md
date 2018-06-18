@@ -199,6 +199,7 @@ The following table shows the other results of the tests performed on different 
 |:------------:|:-----------------------------------------------------------:|:-------:|:-------------:|:------:|
 | ami-52a0c53b |           starcluster-base-ubuntu-12.04-x86_64-hvm          |  Ubuntu |    T2.Micro   |  WORK  |
 | ami-116d857a |         debian-jessie-amd64-hvm-2015-06-07-12-27-ebs        |  Debian |    T2.Micro   |  WORK  |
+| ami-00035c7b | Fedora-Atomic-25-20170727.0.x86_64-us-east-1-HVM-standard-0 |  Fedora |    T2.Micro   |  WORK  |
 
 ## Author
 

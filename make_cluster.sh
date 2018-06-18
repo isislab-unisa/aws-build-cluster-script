@@ -159,7 +159,7 @@ echo "OK!"
 
 echo ">>> Configuring the MASTER::$MASTER ..."
 
-##config MASTER
+##config MASTER [cp al posto di cat]
 master_conf="sudo useradd -s /bin/bash -m -d /home/$CUSER -g root $CUSER; \
 sudo mkdir -p /home/$CUSER/.ssh; \
 sudo chown $CUSER:root ../$CUSER/.ssh; \
@@ -168,7 +168,7 @@ sudo -u $CUSER ssh-keygen -t rsa -N \"\" -C \"\" -f /home/$CUSER/.ssh/id_rsa; \
 sudo -u $CUSER chmod -R 777 /home/$CUSER/.ssh; \
 sudo -u $CUSER touch /home/$CUSER/.ssh/authorized_keys; \
 sudo -u $CUSER chmod 777 /home/$CUSER/.ssh/authorized_keys; \
-sudo -u $CUSER cat /home/$CUSER/.ssh/id_rsa.pub >> /home/$CUSER/.ssh/authorized_keys; \
+sudo -u $CUSER cp /home/$CUSER/.ssh/id_rsa.pub /home/$CUSER/.ssh/authorized_keys; \
 sudo -u $CUSER chmod -R 700 /home/$CUSER/.ssh;"
 
 ssh -oStrictHostKeyChecking=no -i $LOCAL_PEM_AMAZON $USER_ACCESS@$MASTER "$master_conf"
@@ -223,7 +223,7 @@ do
 	slave_pem_conf="sudo chown $CUSER:root id_rsa id_rsa.pub; \
 	sudo chmod -R 777 /home/$CUSER/.ssh; \
 	sudo mv id_rsa id_rsa.pub /home/$CUSER/.ssh; \
-	sudo -u $CUSER cat /home/$CUSER/.ssh/id_rsa.pub >> /home/$CUSER/.ssh/authorized_keys; \
+	sudo -u $CUSER cp /home/$CUSER/.ssh/id_rsa.pub /home/$CUSER/.ssh/authorized_keys; \
 	sudo chown $CUSER:root /home/$CUSER/.ssh/authorized_keys; \
 	sudo chmod -R 700 /home/$CUSER/.ssh;"
 
