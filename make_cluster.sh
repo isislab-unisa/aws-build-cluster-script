@@ -4,6 +4,20 @@ TIME_POLLING=3
 SSH_ATTEMPTS=30
 NAME_FILE_PEM=*.pem
 LOCAL_PEM_AMAZON=key/$NAME_FILE_PEM
+VERSIONING_MASTER_URL=https://raw.githubusercontent.com/isislab-unisa/aws-build-cluster-script/master/VERSION
+
+##cheking updates
+last_version=$(curl -s -L $VERSIONING_MASTER_URL)
+last_version="${last_version//./}"
+this_version=$(cat VERSION)
+this_version="${this_version//./}"
+#echo "last version: $last_version"
+#echo "this version: $this_version"
+if [[ $last_version > $this_version ]]
+then
+	echo "There is an UPDATE!"
+fi
+
 
 if [[ $# = 0 ]]; 
 then
@@ -50,7 +64,6 @@ else
 	echo "        Get the version of the script in use"
 	exit
 fi
-
 
 ## clean environment
 rm data/* > /dev/null
