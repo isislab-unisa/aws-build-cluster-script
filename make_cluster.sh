@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TIME_POLLING=3  # abbreviato, checking via ssh!
+TIME_POLLING=3
 SSH_ATTEMPTS=30
 NAME_FILE_PEM=*.pem
 LOCAL_PEM_AMAZON=key/$NAME_FILE_PEM
@@ -24,6 +24,12 @@ then
 	read -p "USERNAME        : " CUSER
 	read -p "PASSWORD        : " CPASS
 
+elif [ $# = 1  ] && [ $1 = "--version" ]
+then
+	cat VERSION
+	echo ""
+	exit
+
 elif [[ $# = 8 ]]
 then
 	AMI=$1
@@ -39,7 +45,9 @@ else
 	echo "$0"
 	echo "        Run the wizard for create the cluster"
 	echo "$0 <AMI> <USER_ACCESS> <SECURITY_GROUP> <INSTANCE_TYPE> <KEY_NAME> <DIM_CLUSTER> <USERNAME> <PASSWORD>" 
-	echo "        Parametric constructor to create the cluster"
+	echo "        Parametric mode to create the cluster"
+	echo "$0 --version"
+	echo "        Get the version of the script in use"
 	exit
 fi
 
