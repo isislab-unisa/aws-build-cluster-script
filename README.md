@@ -120,6 +120,33 @@ Supposing you want to create the previous cluster, you can simply run the follow
 
 Obviously the key.pem file must still be in the key folder.
 
+### Slave Nodes IPs Management  
+
+Both methods create a bash array containing all nodes private IPs of the cluster, called `ip_private_list.array`.
+The first element of this array is the private ip of the master node and the remaining IPs are the ones of slave nodes
+This array can be used in the following way:
+
+```bash
+. ip_private_list.array
+echo ${ip_private_list[@]} # print all the private IPs of the array
+```
+
+An operative example could be the creation of hostfiles for an MPI cluster:
+
+```bash
+. ip_private_list.array
+
+for (( i=1; i<=${#ip_private_list[@]}; i++ ))
+do
+	for each in "${ip_private_list[@]:0:$i}"
+	do
+	  echo $each >> "myhostfile_$i"
+	done
+done
+```
+
+This snippet deals with creating as much hostfiles as the number of nodes in the cluster, by incrementally adding IPs in every file: myhostfile_1 will contain only the private IP of slave1, myhostfile_2 will contain the private IPs of slave1 and slave2 and so on.
+
 
 ## Manage the cluster
 
