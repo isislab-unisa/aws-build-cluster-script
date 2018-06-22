@@ -145,7 +145,13 @@ do
 done
 ```
 
-This snippet deals with creating as much hostfiles as the number of nodes in the cluster, by incrementally adding IPs in every file: myhostfile_1 will contain only the private IP of slave1, myhostfile_2 will contain the private IPs of slave1 and slave2 and so on.
+This snippet deals with creating as much hostfiles as the number of nodes in the cluster, by incrementally adding IPs in every file:
+
+- myhostfile_1 will contain only the private IP of master;
+- myhostfile_2 will contain the private IP of master and slave1;
+- myhostfile_3 will contain the private IP of master, slave1 and slave2
+
+and so on.
 
 
 ## Manage the cluster
