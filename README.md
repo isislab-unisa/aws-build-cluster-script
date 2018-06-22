@@ -115,7 +115,7 @@ PASSWORD        : test
 Supposing you want to create the previous cluster, you can simply run the following command to create the cluster:
 
 ```bash
-./make_cluster.sh ami-52a0c53b ubuntu sg-acbb05e4 t2.micro kcluster 3 pcpc test
+$ ./make_cluster.sh ami-52a0c53b ubuntu sg-acbb05e4 t2.micro kcluster 3 pcpc test
 ```
 
 Obviously the key.pem file must still be in the key folder.
@@ -155,19 +155,19 @@ With the script "status_cluster.sh" you can *stop*, *start*, and *terminate* the
 So if you want to stop all the instances without destroy the cluster (the instances are NOT in *terminated* status), you can run this command:
 
 ```bash
-./state_cluster.sh stop
+$ ./state_cluster.sh stop
 ```
 
 When you want, you can start the instances again with the command:
 
 ```bash
-./state_cluster.sh start
+$ ./state_cluster.sh start
 ```
 
 If you want to destroy the cluster, you can run the command:
 
 ```bash
-./state_cluster.sh terminate
+$ ./state_cluster.sh terminate
 ARE YOU SURE to TERMINATE the cluster? [y/n] : y
 ```
 
@@ -176,7 +176,7 @@ After this command all cluster instances change state to terminate making the ma
 To get information on the status of the instances present in the cluster, run the following command:
 
 ```bash
-./state_cluster.sh info
+$ ./state_cluster.sh info
 ```
 
 This command should show a json response with the state of all cluster instances.
