@@ -122,7 +122,10 @@ Obviously the key.pem file must still be in the key folder.
 
 ### Slave Nodes IPs Management  
 
-Both methods create a bash array containing all nodes private IPs of the cluster, called `ip_private_list.array`.
+After running the script each node has a friendly name: assuming we have a cluster composed of `n` nodes, the master name is MASTER and each slave is named NODE_`j` where `j` varying in [1; n].
+For example in a cluster of 3 nodes we have a MASTER, NODE_1 and NODE_2
+
+Furthermore both methods create a bash array containing all nodes private IPs of the cluster, called `ip_private_list.array`.
 The first element of this array is the private ip of the master node and the remaining IPs are the ones of slave nodes
 This array can be used in the following way:
 
