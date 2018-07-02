@@ -147,7 +147,6 @@ set | grep ^ip_private_list= > data/ip_private_list.array
 MASTER=${ip_list[0]}
 
 
-###########NEW!!!!
 echo ">>> Checking SSH connections on instances..."
 for pub_ip in "${ip_list[@]}"
 do
@@ -200,6 +199,26 @@ echo "DONE"
 echo ">>> Sending ip_private_list on MASTER::$MASTER node in $CUSER space... [for future automation]"
 scp -i $LOCAL_PEM_AMAZON data/ip_private_list.array $USER_ACCESS@$MASTER:
 ssh -oStrictHostKeyChecking=no -i $LOCAL_PEM_AMAZON $USER_ACCESS@$MASTER "sudo cp ip_private_list.array /home/$CUSER/"
+echo "DONE"
+
+
+
+echo ">>> Setting names in /etc/hosts in all nodes"
+
+set_hosts="printf \"\n#AWS Build Cluster Script -- ip private nodes\n\" | sudo tee -a /etc/hosts; "
+set_hosts=$set_hosts"printf \"${ip_private_list[0]}   MASTER\n\" | sudo tee -a /etc/hosts; "
+for(( i=1; i<$DIM_CLUSTER; i++ ))
+do
+	set_hosts=$set_hosts"printf \"${ip_private_list[$i]}   NODE_$i\n\" | sudo tee -a /etc/hosts; "
+done
+
+for node in "${ip_list[@]}"
+do
+	ssh -i $LOCAL_PEM_AMAZON $USER_ACCESS@$node "$set_hosts"
+done
+
+
+
 echo "DONE"
 
 
