@@ -27,6 +27,16 @@ To use this script you must have AWS CLI and jq
 
 2. Config your CLI running 'aws configure', see [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html).
    When it asks you "Default output format" you must enter '**json**' (this script work with json).
+   
+   **Important** - *see this example*
+   
+   ```bash
+   $ aws configure
+   AWS Access Key ID [None]: AKIAIOSFODNN7EXAMPLE
+   AWS Secret Access Key [None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+   Default region name [None]: us-west-1
+   Default output format [None]: json
+   ```
 
 3. Install the **jq** command
 
