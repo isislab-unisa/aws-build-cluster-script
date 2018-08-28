@@ -247,6 +247,13 @@ The following table shows the other results of the tests performed on different 
 | ami-116d857a |         debian-jessie-amd64-hvm-2015-06-07-12-27-ebs        |  Debian |    T2.Micro   |  WORK  |
 | ami-00035c7b | Fedora-Atomic-25-20170727.0.x86_64-us-east-1-HVM-standard-0 |  Fedora |    T2.Micro   |  WORK  |
 
+## Problems & Errors
+If you see strage errors you MUST:
+
+1. go to the web console and stop all (possible) active instances
+2. search issues here similar to your error
+3. WRITE an issue (Do not be afraid, I answer you as soon as I can)
+
 ## Author
 
 This tool was designed and developed by [Sergio Guastaferro](https://github.com/labgua) during the course of Concurrent and Parallel Programming on Cloud to automate the process of creating clusters.
