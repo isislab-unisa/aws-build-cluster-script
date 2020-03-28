@@ -74,7 +74,16 @@ echo ">>> Creating $DIM_CLUSTER instances..."
 aws ec2 run-instances --image-id $AMI --security-group-ids $SECURITY_GROUP \
 --count $DIM_CLUSTER --instance-type $INSTANCE_TYPE --key-name $KEY_NAME \
 --query 'Instances[*].InstanceId' \
->> data/id_instances.json
+> data/id_instances.json
+
+## check whether aws command failed
+if [[ ! -s data/id_instances.json ]]; then
+	## aws may indeed creates the file even if it fails to create cluster
+	echo -e "An error occurred while requesting instances.\n" \
+		"Please check AWS CLI configuration or parameters provided" \
+		"in this wizard."
+	exit
+fi
 
 echo "DONE and Saved on data/id_instances.json"
 
