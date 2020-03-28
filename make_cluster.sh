@@ -79,8 +79,9 @@ aws ec2 run-instances --image-id $AMI --security-group-ids $SECURITY_GROUP \
 ## check whether aws command failed
 if [[ ! -s data/id_instances.json ]]; then
 	## aws may indeed creates the file even if it fails to create cluster
-	echo -e "An error occurred while requesting instances.\n\
-		Please check for parameters provided in this wizard."
+	echo -e "An error occurred while requesting instances.\n" \
+		"Please check AWS CLI configuration or parameters provided" \
+		"in this wizard."
 	exit
 fi
 
