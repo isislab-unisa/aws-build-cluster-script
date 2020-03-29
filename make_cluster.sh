@@ -1,32 +1,63 @@
 #!/bin/bash
 
 TIME_POLLING=3
-SSH_ATTEMPTS=30
+SSH_ATTEMPTS=3 # 30 is way too much when multiplied for timeout
 NAME_FILE_PEM=*.pem
 LOCAL_PEM_AMAZON=key/$NAME_FILE_PEM
 VERSIONING_MASTER_URL=https://raw.githubusercontent.com/isislab-unisa/aws-build-cluster-script/master/VERSION
+this_version=$(cat VERSION)
+PHASE=""
+SPLASH=0
+SPLASH_SCREEN="\n====================================================\n"
+SPLASH_SCREEN="${SPLASH_SCREEN}\tAWS Build Cluster Script $this_version\n"
+SPLASH_SCREEN="${SPLASH_SCREEN}\tCreate a simple cluster on AWS\n"
+SPLASH_SCREEN="${SPLASH_SCREEN}\tSergio Guastaferro, 2018 [labgua]\n"
+SPLASH_SCREEN="${SPLASH_SCREEN}====================================================\n"
 
-##cheking updates
+## custom defined functions
+checkError() {
+	local error_code=$1
+	local phase=$2
+
+	if (( $error_code != 0 ))
+	then
+		## interrupt script execution, any subsequent phase would fail anyway
+		echo
+		echo "An error occurred while connecting to one or more instances."
+		echo "Please check thoroughly CLI configuration or EC2 Security Group settings."
+		echo "A common solution would be creating a new Security Group."
+		echo
+		echo "Failed phase: $phase."
+		exit
+	fi
+}
+
+announcePhase() {
+	PHASE=$1
+
+	echo ">>> $PHASE..."
+}
+
+announcePhaseTermination() {
+	echo -e ">>> $PHASE: DONE\n"
+}
+
+## cheking updates
 last_version=$(curl -s -L $VERSIONING_MASTER_URL)
 last_version="${last_version//./}"
-this_version=$(cat VERSION)
 this_version="${this_version//./}"
 #echo "last version: $last_version"
 #echo "this version: $this_version"
 if [[ $last_version > $this_version ]]
 then
-	echo "There is an UPDATE!"
+	echo -e "\nA new version of AWS Build Cluster Script is available!\n"
 fi
+this_version=$(cat VERSION)
 
 
 if [[ $# = 0 ]]; 
 then
-	echo "===================================================="
-	echo "  AWS Build Cluster Script"
-	echo "  Create a simple cluster on AWS"
-	echo "  Sergio Guastaferro, 2018 [labgua]"
-	echo "===================================================="
-
+	echo -e "$SPLASH_SCREEN"
 	echo "Insert all the information required."
 
 	read -p "AMI             : " AMI
@@ -37,11 +68,13 @@ then
 	read -p "DIM_CLUSTER     : " DIM_CLUSTER
 	read -p "USERNAME        : " CUSER
 	read -p "PASSWORD        : " CPASS
+	echo
 
+	SPLASH=1
 elif [ $# = 1  ] && [ $1 = "--version" ]
 then
 	cat VERSION
-	echo ""
+	echo
 	exit
 
 elif [[ $# = 8 ]]
@@ -57,24 +90,29 @@ then
 else
 	echo "USAGE"
 	echo "$0"
-	echo "        Run the wizard for create the cluster"
+	echo -e "\tRun the wizard for create the cluster"
 	echo "$0 <AMI> <USER_ACCESS> <SECURITY_GROUP> <INSTANCE_TYPE> <KEY_NAME> <DIM_CLUSTER> <USERNAME> <PASSWORD>" 
-	echo "        Parametric mode to create the cluster"
+	echo -e "\tParametric mode to create the cluster"
 	echo "$0 --version"
-	echo "        Get the version of the script in use"
+	echo -e "\tGet the version of the script in use"
 	exit
 fi
 
 ## clean environment
 rm data/* > /dev/null
 
+if (( SPLASH == 0 ))
+then
+	echo -e "$SPLASH_SCREEN"
+fi
 
-echo ">>> Creating $DIM_CLUSTER instances..." 
+announcePhase "Creating a cluster of $DIM_CLUSTER instances"
 
 aws ec2 run-instances --image-id $AMI --security-group-ids $SECURITY_GROUP \
 --count $DIM_CLUSTER --instance-type $INSTANCE_TYPE --key-name $KEY_NAME \
 --query 'Instances[*].InstanceId' \
 > data/id_instances.json
+checkError $? "$PHASE"
 
 ## check whether aws command failed
 if [[ ! -s data/id_instances.json ]]; then
@@ -84,21 +122,18 @@ if [[ ! -s data/id_instances.json ]]; then
 		"in this wizard."
 	exit
 fi
-
-echo "DONE and Saved on data/id_instances.json"
+echo "Saved instances IDs on data/id_instances.json"
+announcePhaseTermination
 
 ## list id instances
 id_instances=( $(jq -r '.[]' data/id_instances.json) )
-
-
 id_inst_params=""
 for each in "${id_instances[@]}"
 do
   id_inst_params="$id_inst_params $each"
 done
 
-
-echo ">>> WAITING for the instances to become RUNNING"
+announcePhase "Waiting for instances to become RUNNING"
 
 #unready_machines=0
 ready_machines=0
@@ -107,6 +142,7 @@ while [[ $ready_machines != $DIM_CLUSTER ]]; do
 	aws ec2 describe-instance-status --instance-ids $id_inst_params \
 	--query "InstanceStatuses[*].InstanceState.Name" \
 	> data/status_instances.json
+	checkError $? "$PHASE"
 
 	status_instances=( $(jq -r '.[]' data/status_instances.json) )
 
@@ -123,26 +159,23 @@ while [[ $ready_machines != $DIM_CLUSTER ]]; do
 	done
 
 	sleep $TIME_POLLING
-
 done
+echo "All instances are in 'running' state!"
+announcePhaseTermination
 
-
-echo "DONE, All Running!"
-
-
-echo ">>> Getting the IPs ..." 
+announcePhase "Getting instances public and private IPs"
 
 aws ec2 describe-instances --instance-ids $id_inst_params \
 --query 'Reservations[0].Instances[*].PublicIpAddress' \
 >> data/ip_list.json
-
+checkError $? "$PHASE"
 
 aws ec2 describe-instances --instance-ids $id_inst_params \
 --query 'Reservations[0].Instances[*].PrivateIpAddress' \
 >> data/ip_private_list.json
-
-
-echo "DONE and Saved on data/ip_list.json and data/ip_private_list.json"
+checkError $? "$PHASE"
+echo "Saved on data/ip_list.json and data/ip_private_list.json"
+announcePhaseTermination
 
 ## list ip instances
 ip_list=( $(jq -r '.[]' data/ip_list.json) )
@@ -151,21 +184,20 @@ ip_private_list=( $(jq -r '.[]' data/ip_private_list.json) )
 ## save simple array for master in remote, [for mpirun]
 set | grep ^ip_private_list= > data/ip_private_list.array
 
-
 ## setting MASTER
 MASTER=${ip_list[0]}
 
+announcePhase "Checking SSH connections on instances"
 
-echo ">>> Checking SSH connections on instances..."
 for pub_ip in "${ip_list[@]}"
 do
 	ssh -oStrictHostKeyChecking=no -oConnectionAttempts=$SSH_ATTEMPTS -i $LOCAL_PEM_AMAZON $USER_ACCESS@$pub_ip "exit;"
+	checkError $? "$PHASE"
 	echo "$pub_ip is READY!"
 done
-echo "OK!"
+announcePhaseTermination
 
-
-echo ">>> Configuring the MASTER::$MASTER ..."
+announcePhase "Configuring MASTER::$MASTER"
 
 ##config MASTER [cp al posto di cat]
 master_conf="sudo useradd -s /bin/bash -m -d /home/$CUSER -g root $CUSER; \
@@ -180,12 +212,11 @@ sudo -u $CUSER cp /home/$CUSER/.ssh/id_rsa.pub /home/$CUSER/.ssh/authorized_keys
 sudo -u $CUSER chmod -R 700 /home/$CUSER/.ssh;"
 
 ssh -oStrictHostKeyChecking=no -i $LOCAL_PEM_AMAZON $USER_ACCESS@$MASTER "$master_conf"
+checkError $? "$PHASE"
+announcePhaseTermination
 
-echo "DONE"
+announcePhase "Configuring SLAVES"
 
-
-
-echo ">>> Configuring the SLAVES ..."
 for (( i=1; i<$DIM_CLUSTER; i++ ))
 do
 	curr_slave_ip=${ip_list[$i]}
@@ -196,27 +227,29 @@ do
 	echo -e \"$CPASS\n$CPASS\n\" | sudo passwd $CUSER;"
 
 	ssh -oStrictHostKeyChecking=no -i $LOCAL_PEM_AMAZON $USER_ACCESS@$curr_slave_ip "$slave_conf"
+	checkError $? "$PHASE"
 done
+announcePhaseTermination
 
-echo "DONE"
+announcePhase "Sending PEM on MASTER::$MASTER node"
 
-
-echo ">>> Sending PEM on MASTER::$MASTER node ..."
 scp -i $LOCAL_PEM_AMAZON $LOCAL_PEM_AMAZON $USER_ACCESS@$MASTER:
-echo "DONE"
+checkError $? "$PHASE"
+announcePhaseTermination
 
-echo ">>> Sending ip_private_list on MASTER::$MASTER node in $CUSER space... [for future automation]"
+announcePhase "Sending ip_private_list on MASTER::$MASTER node in $CUSER space... [for future automation]"
+
 scp -i $LOCAL_PEM_AMAZON data/ip_private_list.array $USER_ACCESS@$MASTER:
+checkError $? "$PHASE"
 ssh -oStrictHostKeyChecking=no -i $LOCAL_PEM_AMAZON $USER_ACCESS@$MASTER "sudo cp ip_private_list.array /home/$CUSER/"
-echo "DONE"
+checkError $? "$PHASE"
+announcePhaseTermination
 
-
-
-echo ">>> Setting names in /etc/hosts in all nodes"
+announcePhase "Setting names in /etc/hosts for all nodes"
 
 set_hosts="printf \"\n#AWS Build Cluster Script -- ip private nodes\n\" | sudo tee -a /etc/hosts; "
 set_hosts=$set_hosts"printf \"${ip_private_list[0]}   MASTER\n\" | sudo tee -a /etc/hosts; "
-for(( i=1; i<$DIM_CLUSTER; i++ ))
+for (( i=1; i<$DIM_CLUSTER; i++ ))
 do
 	set_hosts=$set_hosts"printf \"${ip_private_list[$i]}   NODE_$i\n\" | sudo tee -a /etc/hosts; "
 done
@@ -224,26 +257,24 @@ done
 for node in "${ip_list[@]}"
 do
 	ssh -i $LOCAL_PEM_AMAZON $USER_ACCESS@$node "$set_hosts"
+	checkError $? "$PHASE"
 done
+announcePhaseTermination
 
+announcePhase "Sending id_rsa and id_rsa.pub from MASTER to SLAVES"
 
-
-echo "DONE"
-
-
-echo ">>> Sending id_rsa and id_rsa.pub from MASTER to SLAVEs ..."
 for (( i=1; i<$DIM_CLUSTER; i++ ))
 do
 	curr_private_slave_ip=${ip_private_list[$i]}
 	send_rsa="sudo scp -oStrictHostKeyChecking=no -i $NAME_FILE_PEM ../$CUSER/.ssh/id_rsa ../$CUSER/.ssh/id_rsa.pub $USER_ACCESS@$curr_private_slave_ip:"
 
 	ssh -i $LOCAL_PEM_AMAZON $USER_ACCESS@$MASTER "$send_rsa"
+	checkError $? "$PHASE"
 done
+announcePhaseTermination
 
-echo "DONE"
+announcePhase "Moving and setting permission for PEM files on slaves"
 
-
-echo ">>> Moving and Set permission for PEM file on slaves..."
 for (( i=1; i<$DIM_CLUSTER; i++ ))
 do
 	curr_slave_ip=${ip_list[$i]}
@@ -256,18 +287,42 @@ do
 	sudo chmod -R 700 /home/$CUSER/.ssh;"
 
 	ssh -i $LOCAL_PEM_AMAZON $USER_ACCESS@$curr_slave_ip "$slave_pem_conf"
+	checkError $? "$PHASE"
 done
+announcePhaseTermination
 
+echo ">>> Cluster is READY!"
 
-echo ">>> The Cluster is READY!"
+echo "On each instance, following user has been created:"
+echo -e "USERNAME:$CUSER\nPASSWORD:$CPASS\n"
 
-echo "On each instance there is a user with :"
-echo "USERNAME:$CUSER - PASSWORD:$CPASS"
-
-echo -e "MASTER\t IP_PUBLIC=$MASTER"
+echo -e "MASTER\tIP_PUBLIC=$MASTER"
 for (( i=1; i<$DIM_CLUSTER; i++ ))
 do
 	curr_private_slave_ip=${ip_private_list[$i]}
 	curr_slave_ip=${ip_list[$i]}
-	echo -e "SLAVE $i\tPRIVATE_IP=$curr_private_slave_ip \tPUBLIC_IP=$curr_slave_ip"
+	echo -e "SLAVE $i\tPRIVATE_IP=$curr_private_slave_ip\tPUBLIC_IP=$curr_slave_ip"
 done
+
+## prompt user for hostfile creation
+CREATE_HOSTFILE="N"
+HOSTFILE="hostfile"
+echo
+read -p "Do you need incremental hostfiles with private IPs? [y/N] (Default: N) " CREATE_HOSTFILE
+if [[ $CREATE_HOSTFILE == "y" ]] || [[ $CREATE_HOSTFILE == "Y" ]]
+then
+	announcePhase "Creating hostfiles"
+	for (( i=1; i<=${#ip_private_list[@]}; i++ ))
+	do
+		## erase current hostfile if already exists
+		if [[ -e $HOSTFILE"_$i" ]]
+		then
+			echo > $HOSTFILE"_$i"
+		fi
+		for private_ip in "${ip_private_list[@]:0:$i}"
+		do
+			echo $private_ip >> $HOSTFILE"_$i"
+		done
+	done
+	announcePhaseTermination
+fi
