@@ -61,7 +61,7 @@ To use this script you must have AWS CLI and `jq` installed
    jq-1.5-1-a5b5cbe
    ```
 
-## Config the script
+## Configure the script
 
 1. Recover the information needed to make the cluster: [*Security-Group*](https://console.aws.amazon.com/ec2/v2/home#SecurityGroups:), [*key-pairs*](https://console.aws.amazon.com/ec2/v2/home#KeyPairs:sort=keyName)
    Take note of the id of the security group and the name of the key pair you want to use.
