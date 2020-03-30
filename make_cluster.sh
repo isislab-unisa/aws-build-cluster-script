@@ -317,7 +317,7 @@ then
 		## erase current hostfile if already exists
 		if [[ -e $HOSTFILE"_$i" ]]
 		then
-			echo > $HOSTFILE"_$i"
+			> $HOSTFILE"_$i"
 		fi
 		for private_ip in "${ip_private_list[@]:0:$i}"
 		do
