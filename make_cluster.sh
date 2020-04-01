@@ -184,6 +184,9 @@ ip_private_list=( $(jq -r '.[]' data/ip_private_list.json) )
 ## save simple array for master in remote, [for mpirun]
 set | grep ^ip_private_list= > data/ip_private_list.array
 
+## save simple array with public IPs as well (MASTER is the first IP)
+set | grep ^ip_list= > data/ip_list.array
+
 ## setting MASTER
 MASTER=${ip_list[0]}
 
@@ -303,26 +306,3 @@ do
 	curr_slave_ip=${ip_list[$i]}
 	echo -e "SLAVE $i\tPRIVATE_IP=$curr_private_slave_ip\tPUBLIC_IP=$curr_slave_ip"
 done
-
-## prompt user for hostfile creation
-CREATE_HOSTFILE="N"
-HOSTFILE="hostfile"
-echo
-read -p "Do you need incremental hostfiles with private IPs? [y/N] (Default: N) " CREATE_HOSTFILE
-if [[ $CREATE_HOSTFILE == "y" ]] || [[ $CREATE_HOSTFILE == "Y" ]]
-then
-	announcePhase "Creating hostfiles"
-	for (( i=1; i<=${#ip_private_list[@]}; i++ ))
-	do
-		## erase current hostfile if already exists
-		if [[ -e $HOSTFILE"_$i" ]]
-		then
-			> $HOSTFILE"_$i"
-		fi
-		for private_ip in "${ip_private_list[@]:0:$i}"
-		do
-			echo $private_ip >> $HOSTFILE"_$i"
-		done
-	done
-	announcePhaseTermination
-fi
