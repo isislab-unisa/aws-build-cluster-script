@@ -267,11 +267,11 @@ announcePhaseTermination
 
 announcePhase "Setting names in /etc/hosts for all nodes"
 
-set_hosts="printf \"\n# AWS Build Cluster Script -- nodes private IPs\n\" >> /etc/hosts; "
-set_hosts=$set_hosts"printf \"${ip_private_list[0]}   MASTER\n\" >> /etc/hosts; "
+set_hosts="printf \"\n# AWS Build Cluster Script -- nodes private IPs\n\" | sudo tee -a /etc/hosts > /dev/null; "
+set_hosts=$set_hosts"printf \"${ip_private_list[0]}   MASTER\n\" | sudo tee -a /etc/hosts > /dev/null; "
 for (( i=1; i<$DIM_CLUSTER; i++ ))
 do
-	set_hosts=$set_hosts"printf \"${ip_private_list[$i]}   NODE_$i\n\" >> /etc/hosts; "
+	set_hosts=$set_hosts"printf \"${ip_private_list[$i]}   NODE_$i\n\" | sudo tee -a /etc/hosts > /dev/null; "
 done
 
 PIDS=""
@@ -284,7 +284,9 @@ done
 checkBGProcesses
 
 # print /etc/hosts from MASTER instead of printing all the ones from every node
+echo "Updated /etc/hosts file:"
 ssh -i $LOCAL_PEM_AMAZON $USER_ACCESS@$MASTER "cat /etc/hosts;"
+checkError $?
 announcePhaseTermination
 
 announcePhase "Sending id_rsa and id_rsa.pub from MASTER to SLAVES"
