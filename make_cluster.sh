@@ -13,6 +13,7 @@ SPLASH_SCREEN="\n====================================================\n"
 SPLASH_SCREEN="${SPLASH_SCREEN}\tAWS Build Cluster Script $this_version\n"
 SPLASH_SCREEN="${SPLASH_SCREEN}\tCreate a simple cluster on AWS\n"
 SPLASH_SCREEN="${SPLASH_SCREEN}\tSergio Guastaferro, 2018 [labgua]\n"
+SPLASH_SCREEN="${SPLASH_SCREEN}\tSimone Bisogno, 2020 [bissim]\n"
 SPLASH_SCREEN="${SPLASH_SCREEN}====================================================\n"
 
 ## custom defined functions
