@@ -209,10 +209,12 @@ announcePhase "Checking SSH connections on instances"
 
 for pub_ip in "${ip_list[@]}"
 do
-	ssh -oStrictHostKeyChecking=no -oConnectionAttempts=$SSH_ATTEMPTS -i $LOCAL_PEM_AMAZON $USER_ACCESS@$pub_ip "exit;"
-	checkError $?
+	ssh -oStrictHostKeyChecking=no -oConnectionAttempts=$SSH_ATTEMPTS -i $LOCAL_PEM_AMAZON $USER_ACCESS@$pub_ip "exit;" &
+	PIDS+=" $!"
+#	checkError $?
 	echo "$pub_ip is READY!"
 done
+checkBGProcesses
 announcePhaseTermination
 
 announcePhase "Configuring MASTER::$MASTER"
@@ -235,6 +237,7 @@ announcePhaseTermination
 
 announcePhase "Configuring SLAVES"
 
+PIDS=""
 for (( i=1; i<$DIM_CLUSTER; i++ ))
 do
 	curr_slave_ip=${ip_list[$i]}
