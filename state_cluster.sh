@@ -3,15 +3,15 @@
 if [[ $# != 1 ]]; then
 	echo "USAGE:"
 	echo "$0 {start|stop|terminate|info}"
-	echo ""
+	echo
 	echo "$0 start"
-	echo "        Start the cluster previously stoped"
+	echo "        Start the cluster previously stopped"
 	echo "$0 stop"
 	echo "        Stop the cluster currently running"
 	echo "$0 terminate"
-	echo "        Terminate the cluster: ALL DATA WILL BE LOST!"
+	echo "        Terminate the cluster: ALL DATA ON INSTANCES WILL BE LOST!"
 	echo "$0 info"
-	echo "        Get the status of the instances present on the cluster"
+	echo "        Get the status of cluster instances"
 	exit
 fi
 
@@ -31,15 +31,15 @@ choose=$1
 
 case "$choose" in
 	terminate)
-		read -p "ARE YOU SURE to TERMINATE the cluster? [y/n] : " confirm
+		read -p "ARE YOU SURE you want to TERMINATE the cluster? [y/n] : " confirm
 
 		if [[ $confirm != "y" ]]
 		then
-			echo "Operation Aborted!"
+			echo "Operation aborted!"
 			exit
 		fi
 
-		echo ">>>>>> Terminating instances from Amazon"
+		echo ">>>>>> Terminating instances from Amazon EC2"
 		aws ec2 terminate-instances --instance-ids $id_inst_params
 		echo "DONE"
 
@@ -47,12 +47,12 @@ case "$choose" in
 		rm data/*
 		;;
 	stop)
-		echo ">>>>>> Stopping instances from Amazon"
+		echo ">>>>>> Stopping instances from Amazon EC2"
 		aws ec2 stop-instances --instance-ids $id_inst_params
 		echo "DONE"
 		;;
 	start)
-		echo ">>>>>> Starting instances from Amazon"
+		echo ">>>>>> Starting instances from Amazon EC2"
 		aws ec2 start-instances --instance-ids $id_inst_params
 		echo "DONE"
 		;;
